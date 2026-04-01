@@ -1,11 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-interface ScanResult {
-  employeeName: string;
-  employeeId: string;
-  type: "IN" | "OUT";
-  timestamp: string;
-}
+import type { ScanResult } from "../types";
 
 async function processScan(employeeId: string): Promise<ScanResult> {
   const res = await fetch("/api/scan", {

@@ -7,15 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useScan } from "@/features/scan/hooks/useScan";
-
-interface ScanResult {
-  employeeName: string;
-  employeeId: string;
-  type: "IN" | "OUT";
-  timestamp: string;
-}
-
-type ScanState = "idle" | "scanning" | "success" | "error";
+import type { ScanResult, ScanState } from "@/features/scan/types";
 
 export default function ScanPage() {
   const [scanState, setScanState] = useState<ScanState>("idle");

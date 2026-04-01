@@ -5,9 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { FormField } from "@/components/forms/form-field";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -51,47 +50,41 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Full name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                  placeholder="Full Name"
-                  className="h-10"
-                />
-              </div>
+              <FormField
+                label="Full name"
+                id="name"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                placeholder="Full Name"
+                className="h-10"
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="Email ID"
-                  className="h-10"
-                />
-              </div>
+              <FormField
+                label="Email address"
+                id="email"
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                placeholder="Email ID"
+                className="h-10"
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  placeholder="At least 6 characters"
-                  className="h-10"
-                />
-              </div>
+              <FormField
+                label="Password"
+                id="password"
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                placeholder="At least 6 characters"
+                className="h-10"
+              />
 
               <Button type="submit" disabled={loading} className="w-full h-10 mt-2">
                 {loading ? "Creating account..." : "Create account"}

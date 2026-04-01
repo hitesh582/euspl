@@ -9,17 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useAttendanceReport } from "@/features/attendance/hooks/useAttendance";
-
-interface ReportRow {
-  employee_id: string;
-  employee_name: string;
-  department?: string;
-  present_days: number;
-  partial_days: number;
-  absent_days: number;
-  total_minutes: number;
-  overtime_minutes: number;
-}
+import type { ReportRow } from "@/features/attendance/types";
 
 function getFirstOfMonth() {
   const now = new Date();

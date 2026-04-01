@@ -9,18 +9,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useAttendance } from "@/features/attendance/hooks/useAttendance";
 
-interface AttendanceRecord {
-  employee_id: string;
-  employee_name: string;
-  date: string;
-  first_in?: string;
-  last_out?: string;
-  total_minutes: number;
-  overtime_minutes: number;
-  status: "present" | "absent" | "partial";
-  sessions: { in: string; out?: string; minutes?: number }[];
-}
-
 export default function AttendancePage() {
   const [date, setDate] = useState(getTodayDate());
   const { data, isLoading: loading } = useAttendance(date);

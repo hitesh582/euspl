@@ -1,16 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-interface Employee {
-  id: string;
-  _id?: string;
-  employee_id: string;
-  name: string;
-  department?: string;
-  position?: string;
-  email?: string;
-  phone?: string;
-  created_at: string;
-}
+import type { Employee } from "../types";
 
 async function fetchEmployees(): Promise<Employee[]> {
   const res = await fetch("/api/employees");

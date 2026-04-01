@@ -10,11 +10,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useEmployees, useDeleteEmployee } from "@/features/employee/hooks/useEmployees";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function EmployeesPage() {
   const { data: employees = [], isLoading: loading } = useEmployees();
   const deleteEmployee = useDeleteEmployee();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
 
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Delete ${name}? This will also delete all their attendance logs.`)) return;
@@ -23,9 +25,9 @@ export default function EmployeesPage() {
 
   const filtered = employees.filter(
     (e) =>
-      e.name.toLowerCase().includes(search.toLowerCase()) ||
-      e.employee_id.toLowerCase().includes(search.toLowerCase()) ||
-      (e.department || "").toLowerCase().includes(search.toLowerCase())
+      e.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      e.employee_id.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      (e.department || "").toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   return (
