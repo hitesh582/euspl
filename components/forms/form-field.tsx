@@ -14,7 +14,7 @@ export function FormField({ label, error, hint, id, className, ...inputProps }: 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-3">
       <Label htmlFor={fieldId}>{label}</Label>
       <Input
         id={fieldId}
