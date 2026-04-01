@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,39 +9,16 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-
-interface Employee {
-  id: string;
-  employee_id: string;
-  name: string;
-  department?: string;
-  position?: string;
-  email?: string;
-  phone?: string;
-  created_at: string;
-}
+import { useEmployees, useDeleteEmployee } from "@/features/employee/hooks/useEmployees";
 
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: employees = [], isLoading: loading } = useEmployees();
+  const deleteEmployee = useDeleteEmployee();
   const [search, setSearch] = useState("");
-  const [deleting, setDeleting] = useState<string | null>(null);
-
-  async function loadEmployees() {
-    const res = await fetch("/api/employees");
-    const data = await res.json();
-    setEmployees(data.employees || []);
-    setLoading(false);
-  }
-
-  useEffect(() => { loadEmployees(); }, []);
 
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Delete ${name}? This will also delete all their attendance logs.`)) return;
-    setDeleting(id);
-    await fetch(`/api/employees/${id}`, { method: "DELETE" });
-    await loadEmployees();
-    setDeleting(null);
+    deleteEmployee.mutate(id);
   }
 
   const filtered = employees.filter(
@@ -140,10 +117,10 @@ export default function EmployeesPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(emp.id, emp.name)}
-                        disabled={deleting === emp.id}
+                        disabled={deleteEmployee.isPending}
                         className="text-muted-foreground hover:text-foreground"
                       >
-                        {deleting === emp.id ? "..." : "Delete"}
+                        {deleteEmployee.isPending ? "..." : "Delete"}
                       </Button>
                     </div>
                   </TableCell>

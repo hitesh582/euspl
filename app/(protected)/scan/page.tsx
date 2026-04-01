@@ -6,6 +6,7 @@ import { formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { useScan } from "@/features/scan/hooks/useScan";
 
 interface ScanResult {
   employeeName: string;
@@ -21,9 +22,11 @@ export default function ScanPage() {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [manualId, setManualId] = useState("");
-  const [processing, setProcessing] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scanMutation = useScan();
+
+  const processing = scanMutation.isPending;
 
   useEffect(() => {
     return () => {
@@ -68,40 +71,25 @@ export default function ScanPage() {
   }
 
   async function processScan(employeeId: string) {
-    setProcessing(true);
     setErrorMsg("");
-    try {
-      const res = await fetch("/api/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employeeId: employeeId.trim() }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setScanState("error");
-        setErrorMsg(data.error || "Scan failed");
-      } else {
+    scanMutation.mutate(employeeId.trim(), {
+      onSuccess: (data) => {
         setScanState("success");
-        setResult({
-          employeeName: data.employeeName,
-          employeeId: data.employeeId,
-          type: data.type,
-          timestamp: data.timestamp,
-        });
-      }
-    } catch (err) {
-      setScanState("error");
-      setErrorMsg("Network error. Please try again.");
-    } finally {
-      setProcessing(false);
-    }
-
-    setTimeout(() => {
-      setScanState("idle");
-      setResult(null);
-      setErrorMsg("");
-    }, 4000);
+        setResult(data);
+        setTimeout(() => {
+          setScanState("idle");
+          setResult(null);
+        }, 4000);
+      },
+      onError: (err) => {
+        setScanState("error");
+        setErrorMsg(err.message);
+        setTimeout(() => {
+          setScanState("idle");
+          setErrorMsg("");
+        }, 4000);
+      },
+    });
   }
 
   async function handleManualSubmit(e: React.FormEvent) {

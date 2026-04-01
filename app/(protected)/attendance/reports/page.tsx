@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { formatHours, minutesToHoursDecimal, getTodayDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { useAttendanceReport } from "@/features/attendance/hooks/useAttendance";
 
 interface ReportRow {
   employee_id: string;
@@ -26,22 +27,11 @@ function getFirstOfMonth() {
 }
 
 export default function ReportsPage() {
-  const [report, setReport] = useState<ReportRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState(getFirstOfMonth());
   const [endDate, setEndDate] = useState(getTodayDate());
   const [employeeFilter, setEmployeeFilter] = useState("");
-
-  async function load() {
-    setLoading(true);
-    const params = new URLSearchParams({ start_date: startDate, end_date: endDate });
-    const res = await fetch(`/api/attendance/report?${params}`);
-    const data = await res.json();
-    setReport(data.report || []);
-    setLoading(false);
-  }
-
-  useEffect(() => { load(); }, [startDate, endDate]);
+  const { data, isLoading: loading } = useAttendanceReport(startDate, endDate);
+  const report = data?.report || [];
 
   function exportCSV() {
     const headers = ["Employee ID", "Name", "Department", "Present Days", "Partial Days", "Absent Days", "Total Hours", "Overtime Hours"];

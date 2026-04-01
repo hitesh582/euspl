@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { formatTime, formatHours, getTodayDate } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { useAttendance } from "@/features/attendance/hooks/useAttendance";
 
 interface AttendanceRecord {
   employee_id: string;
@@ -21,19 +22,9 @@ interface AttendanceRecord {
 }
 
 export default function AttendancePage() {
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
-  const [loading, setLoading] = useState(true);
   const [date, setDate] = useState(getTodayDate());
-
-  async function load() {
-    setLoading(true);
-    const res = await fetch(`/api/attendance?date=${date}`);
-    const data = await res.json();
-    setAttendance(data.attendance || []);
-    setLoading(false);
-  }
-
-  useEffect(() => { load(); }, [date]);
+  const { data, isLoading: loading } = useAttendance(date);
+  const attendance = data?.attendance || [];
 
   const present = attendance.filter((a) => a.status !== "absent").length;
   const absent = attendance.filter((a) => a.status === "absent").length;

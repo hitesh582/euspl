@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -22,71 +21,27 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-
-interface UserRecord {
-  _id: string;
-  name: string;
-  email: string;
-  role: string;
-  created_at: string;
-}
+import { useUsers, useUpdateUserRole } from "@/features/users/hooks/useUsers";
 
 export default function UsersPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [users, setUsers] = useState<UserRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const { data: users = [], isLoading: loading, error } = useUsers();
+  const updateRole = useUpdateUserRole();
 
   useEffect(() => {
     if (user && user.role !== "admin") {
       router.push("/dashboard");
-      return;
     }
-    fetchUsers();
-  }, [user, router]);
+    if (error?.message === "FORBIDDEN") {
+      router.push("/dashboard");
+    }
+  }, [user, router, error]);
 
-  async function fetchUsers() {
-    try {
-      const res = await fetch("/api/users");
-      if (!res.ok) {
-        if (res.status === 403) {
-          router.push("/dashboard");
-          return;
-        }
-        throw new Error("Failed to fetch users");
-      }
-      const data = await res.json();
-      setUsers(data.users);
-    } catch (err) {
-      console.error("Failed to fetch users:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleRoleChange(userId: string, newRole: string) {
-    setUpdating(userId);
-    try {
-      const res = await fetch(`/api/users/${userId}/role`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || "Failed to update role");
-        return;
-      }
-      setUsers((prev) =>
-        prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u))
-      );
-    } catch (err) {
-      console.error("Failed to update role:", err);
-      alert("Failed to update role");
-    } finally {
-      setUpdating(null);
-    }
+  function handleRoleChange(userId: string, newRole: string) {
+    updateRole.mutate({ userId, role: newRole }, {
+      onError: (err) => alert(err.message),
+    });
   }
 
   function getRoleBadgeVariant(role: string) {
@@ -208,7 +163,7 @@ export default function UsersPage() {
                             onValueChange={(val: string | null) => {
                               if (val) handleRoleChange(u._id, val);
                             }}
-                            disabled={updating === u._id}
+                            disabled={updateRole.isPending}
                           >
                             <SelectTrigger className="w-28 h-8">
                               <SelectValue />

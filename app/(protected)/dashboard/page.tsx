@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { formatTime } from "@/lib/utils";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "@/components/ui/card";
@@ -8,35 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-
-interface DashboardData {
-  total_employees: number;
-  present_today: number;
-  absent_today: number;
-  total_logs_today: number;
-  recent_scans: any[];
-}
+import { useDashboard } from "@/features/dashboard/hooks/useDashboard";
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/dashboard")
-      .then((r) => r.json())
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-
-    const interval = setInterval(() => {
-      fetch("/api/dashboard")
-        .then((r) => r.json())
-        .then(setData)
-        .catch(console.error);
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const { data, isLoading: loading } = useDashboard();
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
