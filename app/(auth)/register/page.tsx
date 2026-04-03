@@ -6,33 +6,31 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/forms/form-field";
 import { Eye, EyeOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 
 export default function RegisterPage() {
-  const { register } = useAuth();
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const { register: authRegister } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(data: RegisterInput) {
     setError("");
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-    setLoading(true);
     try {
-      await register(form.name, form.email, form.password);
+      await authRegister(data.name, data.email, data.password);
     } catch (err: any) {
       setError(err.message);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -46,28 +44,24 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           label="Full Name"
           id="name"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          required
           placeholder="Full Name"
+          error={errors.name?.message}
           className="h-11 rounded-full bg-neutral-100 border-0 px-4"
+          {...register("name")}
         />
 
         <FormField
           label="Email Address"
           id="email"
-          name="email"
           type="email"
-          value={form.email}
-          onChange={handleChange}
-          required
           placeholder="Email ID"
+          error={errors.email?.message}
           className="h-11 rounded-full bg-neutral-100 border-0 px-4"
+          {...register("email")}
         />
 
         <div className="grid grid-cols-2 gap-3">
@@ -75,14 +69,11 @@ export default function RegisterPage() {
             <FormField
               label="Password"
               id="password"
-              name="password"
               type={showPassword ? "text" : "password"}
-              value={form.password}
-              onChange={handleChange}
-              required
-              minLength={6}
               placeholder="••••••••"
+              error={errors.password?.message}
               className="h-11 rounded-full bg-neutral-100 border-0 px-4 pr-9"
+              {...register("password")}
             />
             <Button
               type="button"
@@ -98,14 +89,11 @@ export default function RegisterPage() {
             <FormField
               label="Confirm Password"
               id="confirmPassword"
-              name="confirmPassword"
               type={showConfirm ? "text" : "password"}
-              value={form.confirmPassword}
-              onChange={handleChange}
-              required
-              minLength={6}
               placeholder="••••••••"
+              error={errors.confirmPassword?.message}
               className="h-11 rounded-full bg-neutral-100 border-0 px-4 pr-9"
+              {...register("confirmPassword")}
             />
             <Button
               type="button"
@@ -121,10 +109,10 @@ export default function RegisterPage() {
 
         <Button
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting}
           className="w-full h-11 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 mt-2 cursor-pointer"
         >
-          {loading ? "Creating account..." : "Create Account"}
+          {isSubmitting ? "Creating account..." : "Create Account"}
         </Button>
       </form>
 

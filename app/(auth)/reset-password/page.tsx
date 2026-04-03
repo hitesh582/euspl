@@ -1,23 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/forms/form-field";
 import { Eye, EyeOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/validations/auth";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" },
+  });
 
   // Validate token on page load
   const {
@@ -60,11 +70,10 @@ export default function ResetPasswordPage() {
     },
   });
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function onSubmit(data: ResetPasswordInput) {
     reset();
     if (!token) return;
-    mutate({ token, password, confirmPassword });
+    mutate({ token, password: data.password, confirmPassword: data.confirmPassword });
   }
 
   if (validating) {
@@ -126,19 +135,17 @@ export default function ResetPasswordPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="relative">
           <FormField
             label="New Password"
             id="password"
             type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter new password"
-            required
             disabled={isPending}
-            minLength={6}
+            error={errors.password?.message}
             className="h-11 rounded-full bg-neutral-100 border-0 px-4 pr-11"
+            {...register("password")}
           />
           <Button
             type="button"
@@ -156,13 +163,11 @@ export default function ResetPasswordPage() {
             label="Confirm Password"
             id="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm new password"
-            required
             disabled={isPending}
-            minLength={6}
+            error={errors.confirmPassword?.message}
             className="h-11 rounded-full bg-neutral-100 border-0 px-4 pr-11"
+            {...register("confirmPassword")}
           />
           <Button
             type="button"

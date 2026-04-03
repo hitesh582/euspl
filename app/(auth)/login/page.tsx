@@ -6,25 +6,30 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/forms/form-field";
 import { Eye, EyeOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
+  async function onSubmit(data: LoginInput) {
     setError("");
-    setLoading(true);
     try {
-      await login(email, password);
+      await login(data.email, data.password);
     } catch (err: any) {
       setError(err.message);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -38,16 +43,15 @@ export default function LoginPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <FormField
           label="Email address"
           id="email"
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
           placeholder="Email ID"
+          error={errors.email?.message}
           className="h-11 rounded-full bg-neutral-100 border-0 px-4"
+          {...register("email")}
         />
 
         <div className="relative">
@@ -55,11 +59,10 @@ export default function LoginPage() {
             label="Password"
             id="password"
             type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
             placeholder="Password"
+            error={errors.password?.message}
             className="h-11 rounded-full bg-neutral-100 border-0 px-4 pr-11"
+            {...register("password")}
           />
           <Button
             type="button"
@@ -80,10 +83,10 @@ export default function LoginPage() {
 
         <Button
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting}
           className="w-full h-11 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 cursor-pointer"
         >
-          {loading ? "Logging in..." : "Log in"}
+          {isSubmitting ? "Logging in..." : "Log in"}
         </Button>
       </form>
 

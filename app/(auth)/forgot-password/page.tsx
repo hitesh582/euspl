@@ -5,10 +5,21 @@ import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/forms/form-field";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { forgotPasswordSchema, type ForgotPasswordInput } from "@/lib/validations/auth";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordInput>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
+  });
 
   const { mutate, isPending, error, reset } = useMutation({
     mutationFn: async (email: string) => {
@@ -23,15 +34,13 @@ export default function ForgotPasswordPage() {
     },
     onSuccess: (data) => {
       setMessage(data.message);
-      setEmail("");
     },
   });
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function onSubmit(data: ForgotPasswordInput) {
     setMessage("");
     reset();
-    mutate(email);
+    mutate(data.email);
   }
 
   return (
@@ -50,17 +59,16 @@ export default function ForgotPasswordPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <FormField
           label="Email address"
           id="email"
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          disabled={isPending}
           placeholder="Enter your email"
+          error={errors.email?.message}
+          disabled={isPending}
           className="h-11 rounded-full bg-neutral-100 border-0 px-4"
+          {...register("email")}
         />
 
         <Button

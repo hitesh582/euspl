@@ -22,7 +22,7 @@ export function FormField({ label, error, hint, id, className, ...inputProps }: 
         className={cn(error && "border-destructive", className)}
         {...inputProps}
       />
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p className="text-xs text-red-500">{error}</p>}
       {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );

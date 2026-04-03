@@ -2,15 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import getDb from "@/lib/db";
 import { signToken, setSessionCookie } from "@/lib/auth";
+import { loginSchema } from "@/lib/validations/auth";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, password } = body;
+    const result = loginSchema.safeParse(body);
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    if (!result.success) {
+      return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 });
     }
+
+    const { email, password } = result.data;
 
     const db = await getDb();
     const user = await db.collection("users").findOne({ email });

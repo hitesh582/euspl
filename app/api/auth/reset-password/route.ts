@@ -7,6 +7,7 @@ import {
   useResetToken,
   invalidateUserTokens,
 } from "@/lib/services/tokenService";
+import { resetPasswordSchema } from "@/lib/validations/auth";
 
 /**
  * GET /api/auth/reset-password?token=xxx
@@ -58,31 +59,24 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { token, password, confirmPassword } = body;
+    const result = resetPasswordSchema.safeParse(body);
 
-    // Validate required fields
-    if (!token || !password || !confirmPassword) {
+    if (!result.success) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { error: result.error.issues[0].message },
         { status: 400 }
       );
     }
 
-    // Validate passwords match
-    if (password !== confirmPassword) {
+    const { token } = body;
+    if (!token) {
       return NextResponse.json(
-        { error: "Passwords do not match" },
+        { error: "Token is required" },
         { status: 400 }
       );
     }
 
-    // Validate password length (same as registration)
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
-        { status: 400 }
-      );
-    }
+    const { password } = result.data;
 
     // Validate token
     const validation = await validateResetToken(token);

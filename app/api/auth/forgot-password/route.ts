@@ -7,18 +7,21 @@ import {
   recordAttempt,
   logRateLimitViolation,
 } from "@/lib/services/rateLimiterService";
+import { forgotPasswordSchema } from "@/lib/validations/auth";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email } = body;
+    const result = forgotPasswordSchema.safeParse(body);
 
-    if (!email) {
+    if (!result.success) {
       return NextResponse.json(
-        { error: "Email is required" },
+        { error: result.error.issues[0].message },
         { status: 400 }
       );
     }
+
+    const { email } = result.data;
 
     // Check rate limit
     const rateLimit = await checkRateLimit(email);
