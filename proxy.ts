@@ -16,7 +16,6 @@ const PUBLIC_PATHS = [
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
 ];
-const GUARD_ONLY_PATHS = ["/scan"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -46,7 +45,7 @@ export async function proxy(request: NextRequest) {
 
       return NextResponse.next();
     } catch {
-      // Session token invalid
+      console.log("Session token invalid");
     }
   }
 
