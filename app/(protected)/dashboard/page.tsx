@@ -5,8 +5,6 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/features/dashboard/hooks/useDashboard";
 
 export default function DashboardPage() {

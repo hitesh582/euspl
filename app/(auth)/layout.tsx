@@ -8,7 +8,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <p className="text-white text-2xl font-bold ml-6 mt-5">Engineering UND Solutionz Pvt. Ltd.</p>
       </div>
 
-      <div className="w-full md:w-2/5 bg-white flex justify-center flex-col px-10 py-12 overflow-y-auto rounded-l-[58px] my-1">
+      <div className="w-full md:w-2/5 bg-white flex justify-center flex-col px-10 py-12 overflow-y-auto md:rounded-l-[58px] my-0 md:my-1">
         {children}
       </div>
     </div>
