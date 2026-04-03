@@ -4,14 +4,17 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { FormField } from "@/components/forms/form-field";
-import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +23,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -29,60 +32,84 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-950 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center mb-4 mr-8">
-            <Image src="/images/euspl-logo.png" alt="EUSPL" width={300} height={300} />
-          </div>
-          <p className="text-neutral-500 mt-1">Sign in to your account</p>
+    <>
+      <h1 className="text-3xl font-bold text-neutral-900 mb-10">Log in</h1>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-6">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <FormField
+          label="Email address"
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder="Email ID"
+          className="h-11 rounded-full bg-neutral-100 border-0 px-4"
+        />
+
+        <div className="relative">
+          <FormField
+            label="Password"
+            id="password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Password"
+            className="h-11 rounded-full bg-neutral-100 border-0 px-4 pr-11"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-[33px] text-neutral-400 hover:text-neutral-600 cursor-pointer"
+          >
+            {showPassword ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+          </Button>
         </div>
 
-        <Card className="shadow-2xl border-0">
-          <CardContent className="pt-2">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <div className="bg-neutral-100 border border-neutral-300 text-neutral-800 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
+        <div className="flex items-center justify-between text-xs text-neutral-500">
+          <Label htmlFor="remember" className="flex items-center gap-1.5 cursor-pointer text-xs font-normal">
+            <Checkbox 
+              id="remember" 
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked === true)}
+            />
+            Remember Me
+          </Label>
+          <Link href="/forgot-password" className="text-xs text-neutral-500 hover:text-neutral-700 hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
 
-              <FormField
-                label="Email address"
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="Email ID"
-                className="h-10"
-              />
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full h-11 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 cursor-pointer"
+        >
+          {loading ? "Logging in..." : "Log in"}
+        </Button>
+      </form>
 
-              <FormField
-                label="Password"
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="Password"
-                className="h-10"
-              />
-
-              <Button type="submit" disabled={loading} className="w-full h-10">
-                {loading ? "Signing in..." : "Sign in"}
-              </Button>
-            </form>
-
-            <p className="text-center text-sm text-muted-foreground mt-6">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-foreground hover:underline font-medium">
-                Register
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
+      <div className="flex items-center gap-3 my-5">
+        <div className="flex-1 h-px bg-neutral-200" />
+        <span className="text-xs text-neutral-400">Or</span>
+        <div className="flex-1 h-px bg-neutral-200" />
       </div>
-    </div>
+
+      <Link
+        href="/register"
+        className="block w-full h-11 rounded-full bg-neutral-100 text-neutral-700 text-sm font-medium text-center leading-11 hover:bg-neutral-200 transition cursor-pointer"
+      >
+        Sign up
+      </Link>
+    </>
   );
 }

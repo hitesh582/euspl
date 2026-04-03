@@ -12,8 +12,8 @@ const publicSans = Public_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "QR Attendance System",
-  description: "QR-Based Attendance Management System",
+  title: "EUSPL",
+  description: "Engineering UND Solutionz Pvt. Ltd.",
 };
 
 export default function RootLayout({

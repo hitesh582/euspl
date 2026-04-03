@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import getDb from "@/lib/db";
-import { signToken, setSessionCookie } from "@/lib/auth";
+import { 
+  signToken, 
+  setSessionCookie,
+  generateRememberMeToken,
+  enforceTokenLimit,
+  storeRememberMeToken,
+  setRememberMeCookie
+} from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, password } = body;
+    const { email, password, rememberMe } = body;
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -31,7 +38,33 @@ export async function POST(req: NextRequest) {
       role: user.role,
     });
 
-    await setSessionCookie(token);
+    await setSessionCookie(token, rememberMe === true);
+
+    // Handle remember-me functionality
+    if (rememberMe === true) {
+      // Generate remember-me token
+      const rememberMeTokenData = await generateRememberMeToken();
+      
+      // Enforce token limit (max 10 devices per user)
+      await enforceTokenLimit(user._id.toString());
+      
+      // Get user agent from request headers
+      const userAgent = req.headers.get("user-agent") || "unknown";
+      
+      // Store token in database
+      await storeRememberMeToken(
+        user._id.toString(),
+        rememberMeTokenData.tokenHash,
+        userAgent,
+        rememberMeTokenData.expiresAt
+      );
+      
+      // Set remember-me cookie
+      await setRememberMeCookie(
+        rememberMeTokenData.token,
+        rememberMeTokenData.expiresAt
+      );
+    }
 
     return NextResponse.json({
       user: { id: user._id.toString(), name: user.name, email: user.email, role: user.role },
