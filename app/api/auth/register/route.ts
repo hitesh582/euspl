@@ -2,19 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import getDb from "@/lib/db";
 import { signToken, setSessionCookie } from "@/lib/auth";
+import { registerSchema } from "@/lib/validations/auth";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password } = body;
+    const validationResult = registerSchema.safeParse(body);
 
-    if (!name || !email || !password) {
-      return NextResponse.json({ error: "Name, email, and password are required" }, { status: 400 });
+    if (!validationResult.success) {
+      return NextResponse.json({ error: validationResult.error.issues[0].message }, { status: 400 });
     }
 
-    if (password.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
-    }
+    const { name, email, password } = validationResult.data;
 
     const db = await getDb();
     const existing = await db.collection("users").findOne({ email });
