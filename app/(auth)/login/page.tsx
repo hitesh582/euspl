@@ -4,8 +4,6 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { FormField } from "@/components/forms/form-field";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -14,7 +12,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +20,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password, rememberMe);
+      await login(email, password);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -75,15 +72,7 @@ export default function LoginPage() {
           </Button>
         </div>
 
-        <div className="flex items-center justify-between text-xs text-neutral-500">
-          <Label htmlFor="remember" className="flex items-center gap-1.5 cursor-pointer text-xs font-normal">
-            <Checkbox 
-              id="remember" 
-              checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked === true)}
-            />
-            Remember Me
-          </Label>
+        <div className="flex items-center justify-end text-xs text-neutral-500">
           <Link href="/forgot-password" className="text-xs text-neutral-500 hover:text-neutral-700 hover:underline">
             Forgot Password?
           </Link>
