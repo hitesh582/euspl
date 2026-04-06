@@ -213,7 +213,7 @@ export default function EmployeeDetailPage() {
                   <p className="text-xs text-muted-foreground mb-3">
                     Encode: <span className="font-mono font-medium">{employee.employee_id}</span>
                   </p>
-                  <Button onClick={downloadQR} className="w-full" size="sm">
+                  <Button onClick={downloadQR} className="w-full py-5" size="default">
                     Download QR Code
                   </Button>
                 </div>

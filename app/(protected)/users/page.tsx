@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -21,13 +22,24 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { useUsers, useUpdateUserRole } from "@/features/users/hooks/useUsers";
+import { useUsers, useUpdateUserRole, useDeleteUser } from "@/features/users/hooks/useUsers";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 
 export default function UsersPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { data: users = [], isLoading: loading, error } = useUsers();
   const updateRole = useUpdateUserRole();
+  const deleteUser = useDeleteUser();
+  const [userToDelete, setUserToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  function confirmDelete() {
+    if (!userToDelete) return;
+    deleteUser.mutate(userToDelete.id, {
+      onSettled: () => setUserToDelete(null),
+      onError: (err) => alert(err.message),
+    });
+  }
 
   useEffect(() => {
     if (user && user.role !== "admin") {
@@ -64,7 +76,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">User Management</h1>
         <p className="text-muted-foreground mt-1">
@@ -115,6 +127,7 @@ export default function UsersPage() {
                   <TableHead>Current Role</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Change Role</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -176,6 +189,18 @@ export default function UsersPage() {
                           </Select>
                         )}
                       </TableCell>
+                      <TableCell className="text-right">
+                        {!isCurrentUser && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setUserToDelete({ id: u._id, name: u.name })}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -184,6 +209,17 @@ export default function UsersPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!userToDelete}
+        onOpenChange={(open) => !open && setUserToDelete(null)}
+        title={`Delete User ${userToDelete?.name}?`}
+        description="This will permanently delete their login account and revoke dashboard access. This action cannot be undone."
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        variant="destructive"
+        isPending={deleteUser.isPending}
+      />
     </div>
   );
 }

@@ -18,6 +18,14 @@ async function fetchUsers(): Promise<UserRecord[]> {
   return data.users;
 }
 
+async function deleteUser(id: string): Promise<void> {
+  const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to delete user");
+  }
+}
+
 async function updateRole({ userId, role }: { userId: string; role: string }) {
   const res = await fetch(`/api/users/${userId}/role`, {
     method: "PATCH",
@@ -40,6 +48,16 @@ export function useUpdateUserRole() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateRole,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
