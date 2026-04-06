@@ -5,8 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatDateTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/forms/form-field";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -83,10 +82,36 @@ export default function EmployeeDetailPage() {
   }
 
   function downloadQR() {
-    const link = document.createElement("a");
-    link.download = `QR-${employee?.employee_id}-${employee?.name}.png`;
-    link.href = qrCode;
-    link.click();
+    if (!employee || !qrCode) return;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height + 80;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      ctx.fillStyle = "#000000";
+      ctx.textAlign = "center";
+      
+      ctx.font = "bold 32px system-ui, -apple-system, sans-serif";
+      ctx.fillText(employee.name, canvas.width / 2, img.height + 25);
+      
+      ctx.font = "24px monospace";
+      ctx.fillText(employee.employee_id, canvas.width / 2, img.height + 55);
+
+      const link = document.createElement("a");
+      link.download = `QR-${employee.employee_id}-${employee.name}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    };
+    img.src = qrCode;
   }
 
   if (loading) return <div className="p-8 text-muted-foreground">Loading...</div>;
@@ -128,20 +153,17 @@ export default function EmployeeDetailPage() {
                     { label: "Email", name: "email", type: "email" },
                     { label: "Phone", name: "phone" },
                   ].map((field) => (
-                    <div key={field.name} className="space-y-2">
-                      <Label htmlFor={`edit-${field.name}`}>
-                        {field.label} {field.required && "*"}
-                      </Label>
-                      <Input
-                        id={`edit-${field.name}`}
-                        type={field.type || "text"}
-                        name={field.name}
-                        value={(form as any)[field.name]}
-                        onChange={(e) => setForm((f) => ({ ...f, [field.name]: e.target.value }))}
-                        required={field.required}
-                        className="h-10"
-                      />
-                    </div>
+                    <FormField
+                      key={field.name}
+                      label={`${field.label}${field.required ? " *" : ""}`}
+                      id={`edit-${field.name}`}
+                      type={field.type || "text"}
+                      name={field.name}
+                      value={(form as any)[field.name]}
+                      onChange={(e) => setForm((f) => ({ ...f, [field.name]: e.target.value }))}
+                      required={field.required}
+                      className="h-10"
+                    />
                   ))}
                   <Button type="submit" disabled={saving} size="sm">
                     {saving ? "Saving..." : "Save Changes"}

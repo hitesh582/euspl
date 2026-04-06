@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/forms/form-field";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function CreateEmployeePage() {
@@ -67,31 +66,16 @@ export default function CreateEmployeePage() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
-              <Input id="name" name="name" value={form.name} onChange={handleChange} required placeholder="John Doe" className="h-10" />
-            </div>
+            <FormField label="Full Name *" id="name" name="name" value={form.name} onChange={handleChange} required placeholder="John Doe" className="h-10" />
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="department">Department</Label>
-                <Input id="department" name="department" value={form.department} onChange={handleChange} placeholder="Engineering" className="h-10" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
-                <Input id="position" name="position" value={form.position} onChange={handleChange} placeholder="Developer" className="h-10" />
-              </div>
+              <FormField label="Department" id="department" name="department" value={form.department} onChange={handleChange} placeholder="Engineering" className="h-10" />
+              <FormField label="Position" id="position" name="position" value={form.position} onChange={handleChange} placeholder="Developer" className="h-10" />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="john@company.com" className="h-10" />
-            </div>
+            <FormField label="Email" id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="john@company.com" className="h-10" />
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="+1 (555) 000-0000" className="h-10" />
-            </div>
+            <FormField label="Phone" id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="+1 (555) 000-0000" className="h-10" />
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" disabled={loading}>
