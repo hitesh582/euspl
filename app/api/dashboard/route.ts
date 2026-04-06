@@ -40,6 +40,8 @@ export async function GET(req: NextRequest) {
 
     const recentScans = recentLogs.map((l) => ({
       ...l,
+      id: l._id.toString(),
+      _id: undefined,
       employee_name: empMap[l.employee_id] || "Unknown",
     }));
 

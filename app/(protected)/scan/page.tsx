@@ -23,7 +23,12 @@ export default function ScanPage() {
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
+        try {
+          const stopPromise = scannerRef.current.stop();
+          if (stopPromise) stopPromise.catch(() => {});
+        } catch (error) {
+          console.error("Error stopping scanner:", error);
+        }
       }
     };
   }, []);
@@ -56,7 +61,11 @@ export default function ScanPage() {
 
   async function stopScanner() {
     if (scannerRef.current) {
-      await scannerRef.current.stop().catch(() => {});
+      try {
+        await scannerRef.current.stop();
+      } catch (error) {
+        console.error("Error stopping scanner:", error);
+      }
       scannerRef.current = null;
     }
     setScanState("idle");
@@ -172,7 +181,7 @@ export default function ScanPage() {
               <Button
                 onClick={stopScanner}
                 variant="secondary"
-                className="flex-1 h-12"
+                className="flex-1 h-12 mt-4"
                 size="lg"
               >
                 Stop Scanner
@@ -188,7 +197,7 @@ export default function ScanPage() {
           <CardDescription>Enter the employee ID directly if the camera isn&apos;t available</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleManualSubmit} className="flex gap-3">
+          <form onSubmit={handleManualSubmit} className="flex gap-3 items-center">
             <Input
               type="text"
               value={manualId}
@@ -196,7 +205,7 @@ export default function ScanPage() {
               placeholder="e.g. EMP1234"
               className="flex-1 h-10 font-mono"
             />
-            <Button type="submit" disabled={processing || !manualId.trim()}>
+            <Button className="h-10" type="submit" disabled={processing || !manualId.trim()}>
               Submit
             </Button>
           </form>
