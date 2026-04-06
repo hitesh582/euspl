@@ -47,7 +47,7 @@ export default function SettingsPage() {
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">System</span>
-              <span className="font-medium">QR Attendance Management System</span>
+              <span className="font-medium">EUSPL Management System</span>
             </div>
             <Separator />
             <div className="flex justify-between">

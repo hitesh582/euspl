@@ -7,20 +7,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useEmployees, useDeleteEmployee } from "@/features/employee/hooks/useEmployees";
 import { useDebounce } from "@/hooks/useDebounce";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 
 export default function EmployeesPage() {
   const { data: employees = [], isLoading: loading } = useEmployees();
   const deleteEmployee = useDeleteEmployee();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
+  const [employeeToDelete, setEmployeeToDelete] = useState<{ id: string; name: string } | null>(null);
 
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete ${name}? This will also delete all their attendance logs.`)) return;
-    deleteEmployee.mutate(id);
+  function confirmDelete() {
+    if (!employeeToDelete) return;
+    deleteEmployee.mutate(employeeToDelete.id, {
+      onSettled: () => setEmployeeToDelete(null),
+    });
   }
 
   const filtered = employees.filter(
@@ -118,11 +122,10 @@ export default function EmployeesPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(emp.id, emp.name)}
-                        disabled={deleteEmployee.isPending}
+                        onClick={() => setEmployeeToDelete({ id: emp.id, name: emp.name })}
                         className="text-muted-foreground hover:text-foreground"
                       >
-                        {deleteEmployee.isPending ? "..." : "Delete"}
+                        Delete
                       </Button>
                     </div>
                   </TableCell>
@@ -132,6 +135,17 @@ export default function EmployeesPage() {
           </Table>
         </Card>
       )}
+
+      <ConfirmDialog
+        open={!!employeeToDelete}
+        onOpenChange={(open) => !open && setEmployeeToDelete(null)}
+        title={`Delete ${employeeToDelete?.name}?`}
+        description="This will also delete all their attendance logs. This action cannot be undone."
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        variant="destructive"
+        isPending={deleteEmployee.isPending}
+      />
     </div>
   );
 }

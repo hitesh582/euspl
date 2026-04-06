@@ -11,7 +11,8 @@ export async function GET(req: NextRequest) {
     }
 
     const db = await getDb();
-    const employees = await db.collection("employees").find().sort({ name: 1 }).toArray();
+    const raw = await db.collection("employees").find().sort({ name: 1 }).toArray();
+    const employees = raw.map((e) => ({ id: e._id.toString(), ...e, _id: undefined }));
     return NextResponse.json({ employees });
   } catch (err) {
     console.error("Get employees error:", err);
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
     };
 
     const result = await db.collection("employees").insertOne(employee);
-    return NextResponse.json({ employee: { _id: result.insertedId, ...employee } }, { status: 201 });
+    return NextResponse.json({ employee: { id: result.insertedId.toString(), ...employee } }, { status: 201 });
   } catch (err) {
     console.error("Create employee error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -37,10 +37,10 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard title="Total Employees" value={data?.total_employees ?? 0} icon="👥" shade="dark" href="/employees" />
-        <StatCard title="Present Today" value={data?.present_today ?? 0} icon="✓" shade="medium" sub={`${attendanceRate}% attendance rate`} />
-        <StatCard title="Absent Today" value={data?.absent_today ?? 0} icon="✗" shade="light" />
-        <StatCard title="Scans Today" value={data?.total_logs_today ?? 0} icon="◎" shade="default" href="/scan" />
+        <StatCard title="Total Employees" value={data?.total_employees ?? 0} shade="dark" />
+        <StatCard title="Present Today" value={data?.present_today ?? 0} shade="medium" sub={`${attendanceRate}% attendance rate`} />
+        <StatCard title="Absent Today" value={data?.absent_today ?? 0} shade="light" />
+        <StatCard title="Scans Today" value={data?.total_logs_today ?? 0} shade="default" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -93,19 +93,19 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
-              <Link href="/scan" className="flex flex-col items-center gap-2 p-4 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-colors text-center">
+              <Link href="/scan" className="flex flex-col items-center gap-2 p-4 bg-secondary rounded-xl transition-colors text-center">
                 <span className="text-2xl">◎</span>
-                <span className="text-sm font-medium">Scan QR Code</span>
+                <span className="text-sm font-medium text-secondary-foreground">Scan QR Code</span>
               </Link>
-              <Link href="/employees/create" className="flex flex-col items-center gap-2 p-4 bg-secondary hover:bg-secondary/80 rounded-xl transition-colors text-center">
+              <Link href="/employees/create" className="flex flex-col items-center gap-2 p-4 bg-secondary rounded-xl transition-colors text-center">
                 <span className="text-2xl">+</span>
                 <span className="text-sm font-medium text-secondary-foreground">Add Employee</span>
               </Link>
-              <Link href="/attendance" className="flex flex-col items-center gap-2 p-4 bg-secondary hover:bg-secondary/80 rounded-xl transition-colors text-center">
+              <Link href="/attendance" className="flex flex-col items-center gap-2 p-4 bg-secondary rounded-xl transition-colors text-center">
                 <span className="text-2xl">☰</span>
                 <span className="text-sm font-medium text-secondary-foreground">View Attendance</span>
               </Link>
-              <Link href="/attendance/reports" className="flex flex-col items-center gap-2 p-4 bg-secondary hover:bg-secondary/80 rounded-xl transition-colors text-center">
+              <Link href="/attendance/reports" className="flex flex-col items-center gap-2 p-4 bg-secondary rounded-xl transition-colors text-center">
                 <span className="text-2xl">⊞</span>
                 <span className="text-sm font-medium text-secondary-foreground">Reports</span>
               </Link>
@@ -120,14 +120,12 @@ export default function DashboardPage() {
 function StatCard({
   title,
   value,
-  icon,
   shade,
   sub,
   href,
 }: {
   title: string;
   value: number;
-  icon: string;
   shade: "dark" | "medium" | "light" | "default";
   sub?: string;
   href?: string;
@@ -140,16 +138,13 @@ function StatCard({
   };
 
   const content = (
-    <Card className={href ? "hover:shadow-md transition-shadow cursor-pointer" : ""}>
-      <CardContent>
-        <div className="flex items-center justify-between mb-3">
-          <span className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl ${shades[shade]}`}>
-            {icon}
-          </span>
+    <Card className={`h-full ${href ? "hover:shadow-md transition-shadow cursor-pointer" : ""}`}>
+      <CardContent className="flex flex-col justify-between h-full">
+        <div>
+          <p className="text-3xl font-bold">{value}</p>
+          <p className="text-sm font-medium text-muted-foreground mt-1">{title}</p>
         </div>
-        <p className="text-3xl font-bold">{value}</p>
-        <p className="text-sm font-medium text-muted-foreground mt-1">{title}</p>
-        {sub && <p className="text-xs text-muted-foreground/70 mt-1">{sub}</p>}
+        <p className="text-xs text-muted-foreground/70 mt-2 min-h-[1rem]">{sub ?? ""}</p>
       </CardContent>
     </Card>
   );

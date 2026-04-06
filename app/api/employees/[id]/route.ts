@@ -30,7 +30,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .limit(50)
       .toArray();
 
-    return NextResponse.json({ employee, logs });
+    const mappedEmployee = { id: employee._id.toString(), ...employee, _id: undefined };
+    const mappedLogs = logs.map((l) => ({ id: l._id.toString(), ...l, _id: undefined }));
+
+    return NextResponse.json({ employee: mappedEmployee, logs: mappedLogs });
   } catch (err) {
     console.error("Get employee error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -75,7 +78,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     );
 
     const updated = await db.collection("employees").findOne({ _id: employee._id });
-    return NextResponse.json({ employee: updated });
+    return NextResponse.json({ employee: { id: updated!._id.toString(), ...updated, _id: undefined } });
   } catch (err) {
     console.error("Update employee error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

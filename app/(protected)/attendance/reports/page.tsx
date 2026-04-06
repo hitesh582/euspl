@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useAttendanceReport } from "@/features/attendance/hooks/useAttendance";
-import type { ReportRow } from "@/features/attendance/types";
 
 function getFirstOfMonth() {
   const now = new Date();
