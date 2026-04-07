@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useAttendanceReport } from "@/features/attendance/hooks/useAttendance";
+import ExcelJS from "exceljs";
 
 function getFirstOfMonth() {
   const now = new Date();
@@ -22,24 +23,40 @@ export default function ReportsPage() {
   const { data, isLoading: loading } = useAttendanceReport(startDate, endDate);
   const report = data?.report || [];
 
-  function exportCSV() {
-    const headers = ["Employee ID", "Name", "Department", "Present Days", "Partial Days", "Absent Days", "Total Hours", "Overtime Hours"];
-    const rows = filtered.map((r) => [
-      r.employee_id,
-      r.employee_name,
-      r.department || "",
-      r.present_days,
-      r.partial_days,
-      r.absent_days,
-      minutesToHoursDecimal(r.total_minutes),
-      minutesToHoursDecimal(r.overtime_minutes),
-    ]);
-    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+  async function exportExcel() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Attendance Report");
+
+    worksheet.columns = [
+      { header: "Employee ID", width: 15 },
+      { header: "Name", width: 20 },
+      { header: "Department", width: 15 },
+      { header: "Present Days", width: 15 },
+      { header: "Partial Days", width: 15 },
+      { header: "Absent Days", width: 15 },
+      { header: "Total Hours", width: 15 },
+      { header: "Overtime Hours", width: 18 },
+    ];
+
+    filtered.forEach((r) => {
+      worksheet.addRow([
+        r.employee_id,
+        r.employee_name,
+        r.department || "—",
+        r.present_days,
+        r.partial_days,
+        r.absent_days,
+        Number(minutesToHoursDecimal(r.total_minutes)),
+        Number(minutesToHoursDecimal(r.overtime_minutes)),
+      ]);
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `attendance-report-${startDate}-to-${endDate}.csv`;
+    a.download = `Attendance_Report_${startDate}_to_${endDate}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -52,48 +69,54 @@ export default function ReportsPage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-2xl font-bold">Reports</h1>
-          <p className="text-muted-foreground mt-1">Monthly and custom date range attendance reports</p>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">Monthly and custom date range attendance reports</p>
         </div>
-        <Button onClick={exportCSV} className="gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <Button onClick={exportExcel} className="w-full sm:w-auto gap-2 border border-green-600/50 bg-green-600/10 text-green-700 hover:bg-green-600/20 dark:bg-green-950/50 dark:text-green-500 dark:hover:bg-green-900/50">
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Export CSV
+          Export Excel
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div className="flex items-center gap-2">
-          <Label>From:</Label>
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4 w-full sm:w-auto">
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-xs text-muted-foreground">From Date</Label>
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              max={endDate}
+              className="h-9 w-full"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-xs text-muted-foreground">To Date</Label>
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              min={startDate}
+              max={getTodayDate()}
+              className="h-9 w-full"
+            />
+          </div>
+        </div>
+        
+        <div className="flex flex-col gap-1.5 flex-1 w-full sm:max-w-[300px]">
+          <Label className="text-xs text-muted-foreground">Search</Label>
           <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            max={endDate}
-            className="w-auto h-9"
+            type="text"
+            placeholder="Filter by employee..."
+            value={employeeFilter}
+            onChange={(e) => setEmployeeFilter(e.target.value)}
+            className="h-9 w-full"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Label>To:</Label>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            min={startDate}
-            max={getTodayDate()}
-            className="w-auto h-9"
-          />
-        </div>
-        <Input
-          type="text"
-          placeholder="Filter by employee..."
-          value={employeeFilter}
-          onChange={(e) => setEmployeeFilter(e.target.value)}
-          className="w-auto h-9"
-        />
       </div>
 
       {loading ? (
