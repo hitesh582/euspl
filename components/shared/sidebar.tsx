@@ -9,14 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 
-interface NavItem {
+export interface NavItem {
   href: string;
   label: string;
   icon: React.ReactNode;
   roles: string[];
 }
 
-const navItems: NavItem[] = [
+export const navItems: NavItem[] = [
   {
     href: "/dashboard",
     label: "Dashboard",
@@ -95,7 +95,7 @@ export function Sidebar() {
   const { user, logout } = useAuth();
 
   return (
-    <div className="flex flex-col h-full bg-neutral-950 text-white w-64 shrink-0">
+    <div className="hidden md:flex flex-col h-full bg-neutral-950 text-white w-64 shrink-0">
       <div className="p-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0">

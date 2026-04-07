@@ -31,17 +31,17 @@ export default function AttendancePage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold">Attendance</h1>
-          <p className="text-muted-foreground mt-1">Daily attendance overview</p>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">Daily attendance overview</p>
         </div>
         <Input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
           max={getTodayDate()}
-          className="w-auto h-10"
+          className="shrink-0 min-w-[150px] max-w-[200px] h-10 w-full sm:w-auto"
         />
       </div>
 

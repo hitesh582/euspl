@@ -45,24 +45,24 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-4">
               <span className="text-muted-foreground">System</span>
-              <span className="font-medium">EUSPL Management System</span>
+              <span className="font-medium text-sm">EUSPL Management System</span>
             </div>
             <Separator />
-            <div className="flex justify-between">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-4">
               <span className="text-muted-foreground">Work Hours Standard</span>
-              <span className="font-medium">8 hours/day</span>
+              <span className="font-medium text-sm">8 hours/day</span>
             </div>
             <Separator />
-            <div className="flex justify-between">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-4">
               <span className="text-muted-foreground">Duplicate Scan Prevention</span>
-              <span className="font-medium">30-second cooldown</span>
+              <span className="font-medium text-sm">30-second cooldown</span>
             </div>
             <Separator />
-            <div className="flex justify-between">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-4">
               <span className="text-muted-foreground">Auto-close Time</span>
-              <span className="font-medium">10:00 PM</span>
+              <span className="font-medium text-sm">10:00 PM</span>
             </div>
           </div>
         </CardContent>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { LogIn, LogOut } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/forms/form-field";
@@ -99,10 +100,10 @@ export default function EmployeeDetailPage() {
 
       ctx.fillStyle = "#000000";
       ctx.textAlign = "center";
-      
+
       ctx.font = "bold 32px system-ui, -apple-system, sans-serif";
       ctx.fillText(employee.name, canvas.width / 2, img.height + 25);
-      
+
       ctx.font = "24px monospace";
       ctx.fillText(employee.employee_id, canvas.width / 2, img.height + 55);
 
@@ -179,9 +180,12 @@ export default function EmployeeDetailPage() {
                     { label: "Email", value: employee.email },
                     { label: "Phone", value: employee.phone },
                   ].map((item) => (
-                    <div key={item.label}>
+                    <div key={item.label} className="min-w-0">
                       <p className="text-xs text-muted-foreground font-medium">{item.label}</p>
-                      <p className={`text-sm mt-0.5 ${item.mono ? "font-mono" : ""}`}>
+                      <p 
+                        className={`text-sm mt-0.5 truncate ${item.mono ? "font-mono" : ""}`}
+                        title={item.value || ""}
+                      >
                         {item.value || "—"}
                       </p>
                     </div>
@@ -204,8 +208,8 @@ export default function EmployeeDetailPage() {
                     <div key={log.id} className="flex items-center justify-between py-2">
                       <div className="flex items-center gap-3">
                         <Avatar size="sm">
-                          <AvatarFallback className={log.type === "IN" ? "bg-primary text-primary-foreground text-xs" : "bg-secondary text-secondary-foreground text-xs"}>
-                            {log.type === "IN" ? "→" : "←"}
+                          <AvatarFallback className={log.type === "IN" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}>
+                            {log.type === "IN" ? <LogIn className="w-3 h-3" /> : <LogOut className="w-3 h-3 text-secondary-foreground" />}
                           </AvatarFallback>
                         </Avatar>
                         <Badge variant={log.type === "IN" ? "default" : "secondary"}>

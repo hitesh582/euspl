@@ -2,6 +2,7 @@
 
 import { formatTime } from "@/lib/utils";
 import Link from "next/link";
+import { LogIn, LogOut } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -66,7 +67,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarFallback className={scan.type === "IN" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}>
-                          {scan.type === "IN" ? "→" : "←"}
+                          {scan.type === "IN" ? <LogIn className="w-4 h-4" /> : <LogOut className="w-4 h-4" />}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -95,19 +96,19 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-3">
               <Link href="/scan" className="flex flex-col items-center gap-2 p-4 bg-secondary rounded-xl transition-colors text-center">
                 <span className="text-2xl">◎</span>
-                <span className="text-sm font-medium text-secondary-foreground">Scan QR Code</span>
+                <span className="text-sm font-medium text-secondary-foreground whitespace-nowrap">Scan QR Code</span>
               </Link>
               <Link href="/employees/create" className="flex flex-col items-center gap-2 p-4 bg-secondary rounded-xl transition-colors text-center">
                 <span className="text-2xl">+</span>
-                <span className="text-sm font-medium text-secondary-foreground">Add Employee</span>
+                <span className="text-sm font-medium text-secondary-foreground whitespace-nowrap">Add Employee</span>
               </Link>
               <Link href="/attendance" className="flex flex-col items-center gap-2 p-4 bg-secondary rounded-xl transition-colors text-center">
                 <span className="text-2xl">☰</span>
-                <span className="text-sm font-medium text-secondary-foreground">View Attendance</span>
+                <span className="text-sm font-medium text-secondary-foreground whitespace-nowrap">Attendance</span>
               </Link>
               <Link href="/attendance/reports" className="flex flex-col items-center gap-2 p-4 bg-secondary rounded-xl transition-colors text-center">
                 <span className="text-2xl">⊞</span>
-                <span className="text-sm font-medium text-secondary-foreground">Reports</span>
+                <span className="text-sm font-medium text-secondary-foreground whitespace-nowrap">Reports</span>
               </Link>
             </div>
           </CardContent>
