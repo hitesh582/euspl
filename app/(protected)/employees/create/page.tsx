@@ -66,16 +66,16 @@ export default function CreateEmployeePage() {
               </div>
             )}
 
-            <FormField label="Full Name *" id="name" name="name" value={form.name} onChange={handleChange} required placeholder="John Doe" className="h-10" />
+            <FormField label="Full Name *" id="name" name="name" value={form.name} onChange={handleChange} required placeholder="Full Name" className="h-10" />
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Department" id="department" name="department" value={form.department} onChange={handleChange} placeholder="Engineering" className="h-10" />
-              <FormField label="Position" id="position" name="position" value={form.position} onChange={handleChange} placeholder="Developer" className="h-10" />
+              <FormField label="Department" id="department" name="department" value={form.department} onChange={handleChange} placeholder="Department" className="h-10" />
+              <FormField label="Position" id="position" name="position" value={form.position} onChange={handleChange} placeholder="Position" className="h-10" />
             </div>
 
-            <FormField label="Email" id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="john@company.com" className="h-10" />
+            <FormField label="Email" id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email Id" className="h-10" />
 
-            <FormField label="Phone" id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="+1 (555) 000-0000" className="h-10" />
+            <FormField label="Phone" id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="Phone Number" className="h-10" />
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" disabled={loading}>
