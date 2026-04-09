@@ -34,7 +34,6 @@ export default function ImportAttendancePage() {
   const [editingRecord, setEditingRecord] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<AttendanceRecord>>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [isCameraLoading, setIsCameraLoading] = useState(false);
 
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
