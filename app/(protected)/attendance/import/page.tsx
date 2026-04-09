@@ -63,44 +63,85 @@ export default function ImportAttendancePage() {
   // Camera functions
   const getCameraDevices = useCallback(async () => {
     try {
+      // First check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        toast.error('Camera API not available in this browser');
+        return;
+      }
+
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
       setCameraDevices(videoDevices);
       
-      // Auto-select the first camera if none selected
+      // Auto-select first camera if none selected
       if (videoDevices.length > 0 && !selectedCamera) {
         setSelectedCamera(videoDevices[0].deviceId);
       }
     } catch (error) {
-      console.error('Error getting camera devices:', error);
-      toast.error('Failed to access camera devices');
+      toast.error(`Failed to access camera devices: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }, [selectedCamera]);
 
   const startCamera = useCallback(async () => {
     setIsCameraLoading(true);
     try {
-      const constraints = {
+      // First try with basic constraints
+      let constraints: MediaStreamConstraints = {
         video: {
-          deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          facingMode: 'environment'
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         }
       };
 
+      // If we have a selected camera, try to use it
+      if (selectedCamera) {
+        constraints = {
+          video: {
+            deviceId: { exact: selectedCamera },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        };
+      }
+
+      // Show camera modal first
+      setShowCamera(true);
+      
+      // Try to get media stream
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       setCameraStream(stream);
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
+      // Use setTimeout to ensure video element is rendered
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          
+          // Wait for video to be ready
+          videoRef.current.onloadedmetadata = () => {
+            toast.success('Camera started successfully');
+          };
+        } else {
+          toast.error('Failed to initialize video element');
+          setShowCamera(false);
+        }
+      }, 100);
       
-      setShowCamera(true);
-      toast.success('Camera started successfully');
     } catch (error) {
-      console.error('Error starting camera:', error);
-      toast.error('Failed to start camera. Please check permissions.');
+      // Provide specific error messages
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          toast.error('Camera permission denied. Please allow camera access in your browser settings.');
+        } else if (error.name === 'NotFoundError') {
+          toast.error('No camera found. Please connect a camera device.');
+        } else if (error.name === 'NotReadableError') {
+          toast.error('Camera is already in use by another application.');
+        } else {
+          toast.error(`Camera error: ${error.message}`);
+        }
+      } else {
+        toast.error('Failed to start camera. Please check permissions.');
+      }
+      setShowCamera(false);
     } finally {
       setIsCameraLoading(false);
     }
@@ -160,6 +201,17 @@ export default function ImportAttendancePage() {
   // Initialize camera devices on mount
   useEffect(() => {
     getCameraDevices();
+    
+    // Listen for device changes
+    const handleDeviceChange = () => {
+      getCameraDevices();
+    };
+    
+    navigator.mediaDevices?.addEventListener('devicechange', handleDeviceChange);
+    
+    return () => {
+      navigator.mediaDevices?.removeEventListener('devicechange', handleDeviceChange);
+    };
   }, [getCameraDevices]);
 
   // Cleanup camera on unmount
