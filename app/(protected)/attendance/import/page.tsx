@@ -34,13 +34,7 @@ export default function ImportAttendancePage() {
   const [editingRecord, setEditingRecord] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<AttendanceRecord>>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [showCamera, setShowCamera] = useState(false);
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
-  const [selectedCamera, setSelectedCamera] = useState<string>('');
   const [isCameraLoading, setIsCameraLoading] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -60,168 +54,22 @@ export default function ImportAttendancePage() {
     });
   }, []);
 
-  // Camera functions
-  const getCameraDevices = useCallback(async () => {
-    try {
-      // First check if mediaDevices is available
-      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-        toast.error('Camera API not available in this browser');
-        return;
-      }
-
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
-      setCameraDevices(videoDevices);
-      
-      // Auto-select first camera if none selected
-      if (videoDevices.length > 0 && !selectedCamera) {
-        setSelectedCamera(videoDevices[0].deviceId);
-      }
-    } catch (error) {
-      toast.error(`Failed to access camera devices: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }, [selectedCamera]);
-
-  const startCamera = useCallback(async () => {
-    setIsCameraLoading(true);
-    try {
-      // First try with basic constraints
-      let constraints: MediaStreamConstraints = {
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      };
-
-      // If we have a selected camera, try to use it
-      if (selectedCamera) {
-        constraints = {
-          video: {
-            deviceId: { exact: selectedCamera },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        };
-      }
-
-      // Show camera modal first
-      setShowCamera(true);
-      
-      // Try to get media stream
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      setCameraStream(stream);
-      
-      // Use setTimeout to ensure video element is rendered
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          
-          // Wait for video to be ready
-          videoRef.current.onloadedmetadata = () => {
-            toast.success('Camera started successfully');
-          };
-        } else {
-          toast.error('Failed to initialize video element');
-          setShowCamera(false);
-        }
-      }, 100);
-      
-    } catch (error) {
-      // Provide specific error messages
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          toast.error('Camera permission denied. Please allow camera access in your browser settings.');
-        } else if (error.name === 'NotFoundError') {
-          toast.error('No camera found. Please connect a camera device.');
-        } else if (error.name === 'NotReadableError') {
-          toast.error('Camera is already in use by another application.');
-        } else {
-          toast.error(`Camera error: ${error.message}`);
-        }
-      } else {
-        toast.error('Failed to start camera. Please check permissions.');
-      }
-      setShowCamera(false);
-    } finally {
-      setIsCameraLoading(false);
-    }
-  }, [selectedCamera]);
-
-  const stopCamera = useCallback(() => {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
-      setCameraStream(null);
-    }
-    setShowCamera(false);
-  }, [cameraStream]);
-
-  const capturePhoto = useCallback(() => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      const context = canvas.getContext('2d');
-      if (context) {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], `camera-capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
-            const newImage: ProcessedImage = {
-              file,
-              preview: URL.createObjectURL(file)
-            };
-            setImages(prev => [...prev, newImage]);
-            toast.success('Photo captured successfully!');
-            stopCamera();
-          }
-        }, 'image/jpeg', 0.9);
-      }
-    }
-  }, [stopCamera]);
-
-  const switchCamera = useCallback(async () => {
-    const currentIndex = cameraDevices.findIndex(device => device.deviceId === selectedCamera);
-    const nextIndex = (currentIndex + 1) % cameraDevices.length;
-    const nextCamera = cameraDevices[nextIndex];
+  // Native camera capture
+  const handleCameraCapture = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     
-    setSelectedCamera(nextCamera.deviceId);
+    const newImages: ProcessedImage[] = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
     
-    if (showCamera) {
-      stopCamera();
-      setTimeout(() => {
-        startCamera();
-      }, 100);
-    }
-  }, [cameraDevices, selectedCamera, showCamera, stopCamera, startCamera]);
-
-  // Initialize camera devices on mount
-  useEffect(() => {
-    getCameraDevices();
+    setImages(prev => [...prev, ...newImages]);
+    toast.success(`Photo${files.length > 1 ? 's' : ''} captured successfully!`);
     
-    // Listen for device changes
-    const handleDeviceChange = () => {
-      getCameraDevices();
-    };
-    
-    navigator.mediaDevices?.addEventListener('devicechange', handleDeviceChange);
-    
-    return () => {
-      navigator.mediaDevices?.removeEventListener('devicechange', handleDeviceChange);
-    };
-  }, [getCameraDevices]);
-
-  // Cleanup camera on unmount
-  useEffect(() => {
-    return () => {
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [cameraStream]);
+    // Reset the input value to allow capturing the same photo again
+    e.target.value = '';
+  }, []);
 
   const processImages = async () => {
     if (images.length === 0) {
@@ -356,71 +204,7 @@ export default function ImportAttendancePage() {
 
   const allRecords = images.flatMap(img => img.extractedData || []);
 
-  // Camera Modal
-  if (showCamera) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Camera Capture</h3>
-            <div className="flex items-center gap-2">
-              {cameraDevices.length > 1 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={switchCamera}
-                  className="gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Switch Camera
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={stopCamera}
-                className="gap-2"
-              >
-                <X className="w-4 h-4" />
-                Close
-              </Button>
-            </div>
-          </div>
-          
-          <div className="relative bg-black">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full max-h-[60vh] object-contain"
-            />
-            
-            {/* Camera controls overlay */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
-              <Button
-                onClick={capturePhoto}
-                size="lg"
-                className="bg-white text-black hover:bg-gray-100 rounded-full w-16 h-16 p-0"
-              >
-                <div className="w-14 h-14 bg-black rounded-full"></div>
-              </Button>
-            </div>
-            
-            {/* Camera info overlay */}
-            <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-lg text-sm">
-              {cameraDevices.find(d => d.deviceId === selectedCamera)?.label || 'Camera'}
-            </div>
-          </div>
-          
-          <div className="p-4 bg-gray-50 text-center text-sm text-muted-foreground">
-            Position the attendance register in view and tap the button to capture
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  
   const mainContent = (
     <div className="p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -447,19 +231,44 @@ export default function ImportAttendancePage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* File Upload */}
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center h-full min-h-[200px] flex flex-col justify-center">
+          {/* Desktop: Only Upload */}
+          <div className="hidden md:block border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center min-h-[200px]">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="image-upload"
+            />
+            <label
+              htmlFor="image-upload"
+              className="cursor-pointer inline-flex flex-col items-center gap-3 w-full h-full justify-center hover:bg-muted-foreground/5 rounded-lg transition-colors p-4"
+            >
+              <Upload className="w-12 h-12 text-muted-foreground" />
+              <div>
+                <span className="text-lg font-medium block">Upload Images</span>
+                <span className="text-sm text-muted-foreground block mt-1">
+                  Click or drag & drop files here
+                </span>
+              </div>
+            </label>
+          </div>
+
+          {/* Mobile: Upload + Camera */}
+          <div className="md:hidden space-y-4">
+            {/* Upload - Mobile */}
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center min-h-[200px]">
               <input
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleImageUpload}
                 className="hidden"
-                id="image-upload"
+                id="image-upload-mobile"
               />
               <label
-                htmlFor="image-upload"
+                htmlFor="image-upload-mobile"
                 className="cursor-pointer inline-flex flex-col items-center gap-3 w-full h-full justify-center hover:bg-muted-foreground/5 rounded-lg transition-colors p-4"
               >
                 <Upload className="w-12 h-12 text-muted-foreground" />
@@ -472,24 +281,28 @@ export default function ImportAttendancePage() {
               </label>
             </div>
 
-            {/* Camera Capture */}
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center h-full min-h-[200px] flex flex-col justify-center">
-              <button
-                onClick={startCamera}
-                disabled={isCameraLoading || cameraDevices.length === 0}
-                className="cursor-pointer inline-flex flex-col items-center gap-3 w-full h-full justify-center hover:bg-muted-foreground/5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-4"
+            {/* Camera - Mobile Only */}
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center min-h-[200px]">
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleCameraCapture}
+                className="hidden"
+                id="camera-capture"
+              />
+              <label
+                htmlFor="camera-capture"
+                className="cursor-pointer inline-flex flex-col items-center gap-3 w-full h-full justify-center hover:bg-muted-foreground/5 rounded-lg transition-colors p-4"
               >
                 <Camera className="w-12 h-12 text-muted-foreground" />
                 <div>
                   <span className="text-lg font-medium block">Take Photo</span>
                   <span className="text-sm text-muted-foreground block mt-1">
-                    {cameraDevices.length === 0 
-                      ? 'No camera available' 
-                      : `Click to open camera (${cameraDevices.length} found)`
-                    }
+                    Click to open camera app
                   </span>
                 </div>
-              </button>
+              </label>
             </div>
           </div>
 
@@ -670,30 +483,21 @@ export default function ImportAttendancePage() {
   // Image Preview Modal
   if (previewImage) {
     return (
-      <>
-        <canvas ref={canvasRef} className="hidden" />
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-          onClick={() => setPreviewImage(null)}
-        >
-          <div className="relative max-w-4xl max-h-full">
-            <img
-              src={previewImage || ''}
-              alt="Preview"
-              className="max-w-full max-h-full object-contain rounded-lg"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+        onClick={() => setPreviewImage(null)}
+      >
+        <div className="relative max-w-4xl max-h-full">
+          <img
+            src={previewImage || ''}
+            alt="Preview"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
-      </>
+      </div>
     );
   }
 
-  // Hidden canvas for photo capture
-  return (
-    <>
-      {mainContent}
-      <canvas ref={canvasRef} className="hidden" />
-    </>
-  );
+  return mainContent;
 }
